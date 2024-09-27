@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puppeteer Screenshot and PDF Tool</title>
+</head>
+<body>
+    <h1>Screenshot & PDF Tool</h1>
+
+    <form id="screenshotForm">
+        <label for="url">Enter Website URL:</label>
+        <input type="text" id="url" name="url" placeholder="https://example.com" required>
+        <button type="submit">Take Screenshot & Generate PDF</button>
+    </form>
+
+    <div id="result">
+        <h2>Status:</h2>
+        <p id="status"></p>
+        <p id="trackLink" style="display: none;">Track Screenshot & PDF: <a href="" target="_blank" id="trackLinkHref">Click here</a></p>
+    </div>
+
+    <p><a href="list-pdfs.html">View All PDFs</a></p>
+
+    <script>
+        document.getElementById('screenshotForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const url = document.getElementById('url').value;
+
+            // Send the request to take a screenshot and generate a PDF
+            const response = await fetch(`/screenshot?url=${encodeURIComponent(url)}`);
+            const data = await response.json();
+
+            const taskId = data.taskId;
+            document.getElementById('status').innerText = 'Processing...';
+            const trackLink = document.getElementById('trackLinkHref');
+            trackLink.href = `/task-status/${taskId}`;
+            document.getElementById('trackLink').style.display = 'block';
+
+            // Poll for task completion
+            const pollTaskStatus = setInterval(async function () {
+                const statusResponse = await fetch(`/task-status/${taskId}`);
+                const taskData = await statusResponse.json();
+
+                if (taskData.status === 'completed') {
+                    clearInterval(pollTaskStatus);
+                    document.getElementById('status').innerText = 'Completed!';
+                    trackLink.href = `/pdfs/${taskData.result.pdf}`;
+                } else if (taskData.status === 'failed') {
+                    clearInterval(pollTaskStatus);
+                    document.getElementById('status').innerText = `Failed: ${taskData.error}`;
+                }
+            }, 2000); // Poll every 2 seconds
+        });
+    </script>
+</body>
+</html>

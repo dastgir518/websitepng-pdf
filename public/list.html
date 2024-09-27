@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screenshot List</title>
+</head>
+<body>
+    <h1>List of Screenshots</h1>
+    <ul id="screenshotsList"></ul>
+    <p><a href="index.html">Back to Screenshot Tool</a></p>
+
+    <script>
+        async function loadScreenshots() {
+            const response = await fetch('/list-screenshots');
+            const screenshots = await response.json();
+
+            const screenshotsList = document.getElementById('screenshotsList');
+            screenshotsList.innerHTML = ''; // Clear the list
+
+            // Display all screenshots as links and thumbnails
+            screenshots.forEach(screenshot => {
+                const li = document.createElement('li');
+                const img = document.createElement('img');
+                const link = document.createElement('a');
+                
+                img.src = screenshot;
+                img.width = 200; // Set thumbnail size
+                
+                link.href = screenshot; // Link to the full image
+                link.target = '_blank';
+                link.appendChild(img);
+                
+                li.appendChild(link);
+                screenshotsList.appendChild(li);
+            });
+        }
+
+        // Load the screenshot list when the page loads
+        window.onload = loadScreenshots;
+    </script>
+</body>
+</html>
